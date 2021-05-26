@@ -20,23 +20,19 @@ import javax.swing.JTextField;
 
 /** Página que documenta a nova API de comunicação serial 
  *  https://fazecast.github.io/jSerialComm/
- *  
- *  1a versao no git
  */
 
 public class EspectroFotometroView extends JFrame {
 	
 	private static final boolean IMPRIME_DADOS_BRUTOS = true;
-	private static final boolean VIEW_PORTS = false;
-	private static final boolean READ_FROM_FILE = false;
 	private static final int TEMPO_INTEGRACAO = 1280;
-
 	private static final int SAMPLES = 120;
 	private static final int WAIT_TIME = 500; //em milisegundos	
 	
 	AuxThread auxThread = null;
 	
 	ImagePanel imgPanel = null;
+	JButton btnReflectancia = null;						//Cria um objeto do tipo JButton com o nome btnReflectancia
 	JButton btnCapture = null;
 	JButton btnContinua = null;
 	JButton btnStop = null;
@@ -46,13 +42,12 @@ public class EspectroFotometroView extends JFrame {
 	JButton btnGain = null;
 	JButton btnBlack = null;
 	JButton btnWhite = null;
-	
+
 	
 	JLabel integTimeLabel = new JLabel("Integration Time: ");
 	JLabel gainLabel = new JLabel("Gain:");
 	JLabel batLabel = new JLabel("Tensão bateria(V):");
-	
-	
+		
 	JTextField integField = new JTextField();
 	JTextField gainField = new JTextField();
 	JTextField batField = new JTextField();
@@ -76,51 +71,31 @@ public class EspectroFotometroView extends JFrame {
 	int samples = 128;
 	int integTime = 0;
 	int sampleMaximo = 4095;
-		
-	public EspectroFotometroView(String porta) {
-		if ((VIEW_PORTS) || (porta.equalsIgnoreCase("VIEW_PORTS"))){
-			Serial.checkPorts();
-			//sai do programa
-			System.exit(1);
-		} else if (!READ_FROM_FILE) {
-			System.out.println("Execução do programa de forma NORMAL. Abrindo porta COM");
-	    	serial = new Serial();
-		}
-		initPanel();
-
-	}
+	int pixelsX=750;									     //Pixels eixo X
+	int pixelsY=550;										//Pixels eixo Y
+	int numDados=1;
+	int feX=1;							//Fator de escala eixo X
 	
-	//Lendo de arquivo c:\espec.txt, para quem não tem espectrofotometro
-	private void readFromFile(){
-		arrayDados = new float[128];
-		try {
-			FileReader fis = new FileReader("c:/espec.txt");
-			BufferedReader read = new BufferedReader(fis);
-			//Le linha 1 vazia
-			read.readLine();
-			for (int i=0;i<128;i++) {
-				arrayDados[i] = Integer.parseInt(read.readLine());
-			}
-			read.close();
-			fis.close();
-		}catch(Exception e){
-			e.printStackTrace();
-		}
+		
+	public EspectroFotometroView() {
+    	serial = new Serial();
+		initPanel();
 	}
 	
 	//Inicializa janela grafica
 	private void initPanel(){
-		this.setBounds(10, 10, 1000, 640);
+		this.setBounds(10, 10, 1100, 640);  //define tamanho da janela
 		this.setBackground(Color.black);
 		this.setTitle("Espectro Fotometro View");
 		this.getContentPane().setLayout(null);
 		
 		classeGrafica = this;
     	auxThread = new AuxThread(classeGrafica);
-		
-		
-		imgPanel = new ImagePanel();
-		imgPanel.setBounds(10, 10, 745, 550);		
+    	
+    //******************************************************Inicializa painel do gráfico*********************************************************************	
+    	imgPanel = new ImagePanel();
+
+		imgPanel.setBounds(10, 10, pixelsX, pixelsY);                	
 		imgPanel.setBackground(Color.blue);
 		this.add(imgPanel);
 		
@@ -156,19 +131,33 @@ public class EspectroFotometroView extends JFrame {
 		batField.setText("");
 		this.add(batField);
 		
-		 
-		
 		//CRIACAO DE BOTOES
+		btnReflectancia = new JButton("Reflectancia");
+		btnReflectancia.setBounds(990, 570, 110, 25);					//(x,y,deltax,deltay
+		btnReflectancia.addActionListener(new ActionListener() 				
+		{
+            public void actionPerformed(ActionEvent et)
+            {
+            	serial.sendValue("5\n");									//Envia comando 5
+            	trabalhandoComDadosDaCom();									//31 dados de reflectancia e lamdas em arrayDados e arrayLambda
+            	setVisible(false);
+            	setVisible(true);
+            }             
+        });		
+		this.add(btnReflectancia);												//Adiciona io botao na tela
+		
+//*********************************************Botão Campture************************************************************************** 		
 		btnCapture = new JButton("Capture");
 		btnCapture.setBounds(10, 570, 80, 25);
 		btnCapture.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent et) {
+            	serial.sendValue("1\n");						//Envia comando "1"  p/ espectrofotometro
            		trabalhandoComDadosDaCom();									//Armazena intensidade em arrayDados  e lambda em arrayLambda
-        		System.out.println("Dados de Reflectancia:");
-        		for (int k=0;k<128;k++) {
-        			arrayReflectancia[k] = (arrayDados[k]-arrayBlack[k])/(arrayWhite[k]-arrayBlack[k]);
-        			System.out.println(arrayWhite[k] + " - " + arrayBlack[k] + " : " + arrayReflectancia[k]);            			
-        		}
+        	//	System.out.println("Dados de Reflectancia:");
+        	//	for (int k=0;k<128;k++) {
+        	//		arrayReflectancia[k] = (arrayDados[k]-arrayBlack[k])/(arrayWhite[k]-arrayBlack[k]);
+        	//		System.out.println(arrayWhite[k] + " - " + arrayBlack[k] + " : " + arrayReflectancia[k]);            			
+        		//}
             	// Imprime array independente se for de arquivo ou fotometro
             	setVisible(false);
             	setVisible(true);
@@ -176,6 +165,7 @@ public class EspectroFotometroView extends JFrame {
         });		
 		this.add(btnCapture);
 		
+		//*********************************************Botão Camptura Continua************************************************************************** 		
 		btnContinua = new JButton("Captura Continua");
 		btnContinua.setBounds(100, 570, 150, 25);
 		btnContinua.addActionListener(new ActionListener() {
@@ -251,7 +241,7 @@ public class EspectroFotometroView extends JFrame {
 		btnSave.setBounds(570, 570, 80, 25);
 		btnSave.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent et) {
-            	saveFile();
+            	salvarArquivo(); 
             }
 		});
 		this.add(btnSave);
@@ -308,14 +298,15 @@ public class EspectroFotometroView extends JFrame {
 	}
 	
 	/** Salva em arquivo */
-	private void saveFile(){
+	private void salvarArquivo(){
 		try {
 			Calendar cal = Calendar.getInstance();
 			Date data = cal.getTime();
-			FileWriter fis = new FileWriter("espectro_"+data.getDay()+"-"+data+".txt");
+			String diaDeHoje = data.getDate()+"-"+ (data.getMonth()+1) + "-" + (data.getYear()+1900) + "-" + data.getHours() + "-" + data.getMinutes(); 
+			FileWriter fis = new FileWriter("espectro" + diaDeHoje +".txt");
 			BufferedWriter writter = new BufferedWriter(fis);
-			for (int i=0;i<128;i++) {
-				writter.write(arrayDados[i]+"\n");
+			for (int i=0;i<128;i++) {				
+				writter.write(Float.toString(arrayDados[i])+"\n");
 			}
 			writter.close();
 			fis.close();
@@ -328,7 +319,7 @@ public class EspectroFotometroView extends JFrame {
 	/******************************************** Trata os dados vindos da porta COM ****************************/
 	private void trabalhandoComDadosDaCom(){
     	
-    	serial.sendValue("1\n");						//Envia comando "1"  p/ espectrofotometro
+    	//serial.sendValue("1\n");						//O comando esta sendo enviando pelo botão antes de chamar esta rotina.
     	try { 
     		Thread.sleep(500);
     	}catch (Exception e) {
@@ -339,9 +330,11 @@ public class EspectroFotometroView extends JFrame {
     	}
     	        
     	StringTokenizer st = new StringTokenizer(texto,"\r");
-    	int numTokens = st.countTokens();
-    	System.out.println("Número de linhas: "+numTokens);    	
-    	for (int i=0;i<numTokens-1;i++) {
+    	numDados = st.countTokens();							//Determina o numero de linhas, ou seja numero de dados 
+    	System.out.println("Número de linhas: "+numDados);    			//Pode ser 128 ou 31
+    	arrayDados = new float[numDados];
+    	arrayLambda = new float[numDados];
+    	for (int i=0; i<numDados-1; i++) {
     		String value = st.nextToken().trim();
     		StringTokenizer newToken = new StringTokenizer(value," ");
     		//int temp = newToken.countTokens();
@@ -367,27 +360,17 @@ public class EspectroFotometroView extends JFrame {
 		
 	//*************************************Main do software******************8
 	public static void main(String[] args) {
-		String comPort = "COM2";
-		System.out.println("   ESPECTRO FOTOMETRO PROGRAM   ");
-		System.out.println("   Args:   ");
-		System.out.println("      view_port:  To visualize COM ports on yor computer");
-		System.out.println("      other: COM port");
+		System.out.println("   ESPECTRO FOTOMETRO VERSÃO 2021 ");
 		System.out.println("--------------------------------");	
 		
-		if(args.length>0) {
-			comPort = args[0];
-			System.out.println("New Port SET: " + comPort);
-		}
-			
         try {
-        	//Serial serial = new Serial();
-        	//Serial.checkPorts();
             javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
-    		EspectroFotometroView view = new EspectroFotometroView(comPort);
+    		EspectroFotometroView view = new EspectroFotometroView();
     		view.setVisible(true);
     		
         } catch (Exception e) {
             System.out.println("Erro inicializando janela");
+            e.printStackTrace();
         }        
 	}
 	class ImagePanel extends Panel {		
@@ -409,7 +392,6 @@ public class EspectroFotometroView extends JFrame {
 	    }
 	    	    
 	    public void paint(Graphics g) {
-//	      if (myimg != null) {	        
 	        
 	        //Linhas de maximo e minimo
 	        g.setColor(Color.WHITE);
@@ -418,7 +400,6 @@ public class EspectroFotometroView extends JFrame {
         	paintGraph(g);
         	paintNumbers(g);
 
-	//      }
 	    }
 	    
 	    /************************************* Imprime Eixos ********************/
@@ -444,23 +425,16 @@ public class EspectroFotometroView extends JFrame {
 	    }
 	    
 	    /****************** Faz o gráfico na parte inferior da janela ***********/
-	    private void paintGraph (Graphics g) {
-	//    	 arrayDados = int[128];
-		   	if(arrayDados != null) {
+	    private void paintGraph (Graphics g) 
+	    {
+	    	feX=pixelsX/numDados;
+		//   	if(arrayDados != null) {
+		   												
 		   		
 		    	for (int i=0; i < arrayDados.length-1; i++) {
 			    	g.setColor(Color.WHITE);
-			    	float valor = normalize(arrayDados[i]);
-			    	float proximo = normalize(arrayDados[i+1]);
-			    	//System.out.println("Valor = " + valor);
-	//		    	System.out.println((XOffSet+(i*5))+" - "+(YOffSet+(int)arrayDados[i]/10)+" - "+(XOffSet+((i+1)*5))+" - "+(YOffSet+(int)arrayDados[i+1]/10));
-			   	    g.drawLine(XOffSet+(i*5),YOffSetDados-(int)arrayDados[i]/10, XOffSet+((i+1)*5) ,YOffSetDados-(int)arrayDados[i+1]/10);
-
-//			    	g.drawLine(XOffSet+i, i+YOffSet, XOffSet+i+1 , i+YOffSet);    			    		
-//			    	g.drawLine(XOffSet, YOffSet, XOffSet + arrayDados[i], YOffSet+650);
-//			    	System.out.println(""+arrayDados[i]);
-			    	//System.out.println("Nunca passa por aqui "+i);
-		    	}	
+			   	    g.drawLine(XOffSet+(i*feX),YOffSetDados-(int)arrayDados[i]/10, XOffSet+((i+1)*feX) ,YOffSetDados-(int)arrayDados[i+1]/10);
+		    	//}	
 		    }	    	
 	    }
 	    
@@ -480,10 +454,10 @@ public class EspectroFotometroView extends JFrame {
 		    	
 		    	//Setando configuracao para pintar os numeros
 		    	g.setColor(Color.WHITE);
-		    	for(int i=0; i<samples; i=i+10) {
-		    		 int l = (int)(3.144*i+333.77);
+		    	for(int i=0; i<arrayLambda.length; i=i+2) 
+		    	{
 		    		 //System.out.println("Pto: " + (XOffSet+i+10));
-		    		 g.drawString(""+arrayLambda[i],XOffSet+i*5+5, YOffSet+470 );  
+		    		 g.drawString(""+arrayLambda[i],XOffSet+i*feX+5, YOffSet+470 );  
 		    	}
 		    	//devolvendo a cor que estava sendo usada
 		    	g.setColor(actualColor);

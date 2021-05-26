@@ -2,13 +2,24 @@ import com.fazecast.jSerialComm.*;
 
 public class Serial {
 	
+	private static final String PORTA_COM = "COM6";
 	SerialPort porta = null;
 	
+	
 	public Serial() {
-		//construtor vazio que pega a primeira COM encontrada e abre a porta para uso
-		porta = SerialPort.getCommPorts()[0];
+		System.out.println("Listagem de portas encontradas: ");
+		for(SerialPort portaEncontrada : SerialPort.getCommPorts()) {
+			System.out.println("     "+portaEncontrada.getDescriptivePortName());
+			if(portaEncontrada.getDescriptivePortName().contains(PORTA_COM)) {
+				porta = portaEncontrada;
+			}
+		}
+		if(porta==null) {
+			System.out.println("NÃO ENCONTREI PORTA COM NOME "+PORTA_COM+". SAINDO DO PROGRAMA");
+			System.exit(0);
+		}
+		System.out.println("Porta que será utilizada: "+porta.getDescriptivePortName());
 		porta.openPort();
-		System.out.println("Porta ABERTA: "+porta.getPortDescription());
 	}
 	
 	/** Construtor. Inicia comunicacao com porta serial passada por parametro, cria streams e seta parametros 
