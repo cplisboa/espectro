@@ -20,6 +20,8 @@ import javax.swing.JTextField;
 
 /** Página que documenta a nova API de comunicação serial 
  *  https://fazecast.github.io/jSerialComm/
+ *  
+ *  1a versao no git
  */
 
 public class EspectroFotometroView extends JFrame {
