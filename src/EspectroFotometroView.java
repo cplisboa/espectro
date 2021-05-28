@@ -74,8 +74,8 @@ public class EspectroFotometroView extends JFrame {
 	int pixelsX=750;									     //Pixels eixo X
 	int pixelsY=550;										//Pixels eixo Y
 	int numDados=1;
-	int feX=1;							//Fator de escala eixo X
-	
+	int feX=24;							//Fator de escala eixo X
+	int feY=24;							//Fator de escala eixo Y
 		
 	public EspectroFotometroView() {
     	serial = new Serial();
@@ -395,47 +395,42 @@ public class EspectroFotometroView extends JFrame {
 	        
 	        //Linhas de maximo e minimo
 	        g.setColor(Color.WHITE);
-	        
-	        paintAxis(g);
-        	paintGraph(g);
-        	paintNumbers(g);
+	        feX=pixelsX/numDados;
+	        feY=pixelsY/numDados;
+	        paintAxis(g);					//Cria os eixos X, Y e linhas hprizontais e verticais
+        	paintGraph(g);					//Cria o gráfico
+        	paintNumbers(g);				//Cria números dos esixos
 
 	    }
 	    
-	    /************************************* Imprime Eixos ********************/
-	    private void paintAxis(Graphics g) {
+	    /************************************* Imprime Eixos e Linhas Verticais  ******************************/
+	    private void paintAxis(Graphics g) 
+	    {
 	    	g.setColor(Color.yellow);
 	    	g.drawLine(XOffSet, minValue, XOffSet + 700, minValue);  //Eixo X
 	    	g.drawLine(XOffSet, minValue, XOffSet, YOffSet);  //Eixo Y
-	    	//g.drawLine(XOffSet+samples, YOffSet, XOffSet+samples, YOffSet + 255 );  //linha do fim do gráfico
-	    	
-	    	//Escala (linhas de 50 em 50)
 	    	g.setColor(Color.white);
-	    /*	g.drawLine(XOffSet, YOffSet+205, XOffSet + samples, YOffSet+205);  
-	    	g.drawLine(XOffSet, YOffSet+155, XOffSet + samples, YOffSet+155);  
-	    	g.drawLine(XOffSet, YOffSet+105, XOffSet + samples, YOffSet+105);  
-        	g.drawLine(XOffSet, YOffSet+55, XOffSet + samples, YOffSet+55);  
-	    	g.drawLine(XOffSet, YOffSet, XOffSet + samples, YOffSet);
-	    	 */
 	    	// Linhas verticas de 20 em 20
-	    	for(int i=0; i<samples; i=i+10) {
-	    		g.drawLine(XOffSet+5*i, YOffSet, XOffSet+5*i, YOffSet + 650 );  //Eixo Y
+	    	for(int i=0; i<pixelsX; i=i+50)
+	    	{
+	    		g.drawLine(XOffSet+i, YOffSet, XOffSet+i, YOffSet + 650 );  //Eixo Y
 	    	}
-	   	
+	    	// Linhas horizontais de 20 em 20
+	    	for(int i=0; i<pixelsY; i=i+50)
+	    	{
+	    		g.drawLine(XOffSet, YOffSet+i, XOffSet+700, YOffSet+i );  //Eixo Y
+	    	}
 	    }
 	    
-	    /****************** Faz o gráfico na parte inferior da janela ***********/
+	    /********************************** Faz o gráfico na parte inferior da janela **************************/
 	    private void paintGraph (Graphics g) 
 	    {
-	    	feX=pixelsX/numDados;
-		//   	if(arrayDados != null) {
-		   												
-		   		
-		    	for (int i=0; i < arrayDados.length-1; i++) {
+	    	//feX=pixelsX/numDados;
+		    for (int i=0; i < arrayDados.length-1; i++) 
+		    	{
 			    	g.setColor(Color.WHITE);
-			   	    g.drawLine(XOffSet+(i*feX),YOffSetDados-(int)arrayDados[i]/10, XOffSet+((i+1)*feX) ,YOffSetDados-(int)arrayDados[i+1]/10);
-		    	//}	
-		    }	    	
+			   	    g.drawLine(XOffSet+(i*feX),YOffSetDados-(int)arrayDados[i]/10, XOffSet+((i+1)*feX) ,YOffSetDados-(int)arrayDados[i+1]/10);			   	    
+		    	}	    	
 	    }
 	    
 	    /** Normaliza valor fazendo regra de tres */
@@ -454,11 +449,24 @@ public class EspectroFotometroView extends JFrame {
 		    	
 		    	//Setando configuracao para pintar os numeros
 		    	g.setColor(Color.WHITE);
-		    	for(int i=0; i<arrayLambda.length; i=i+2) 
+		  	int delta;
+		  	if (numDados > 70) 
+		  		delta=10;
+		  	else
+		  		delta=2;
+		  	
+		    for(int i=0; i<numDados; i=i+delta) 
 		    	{
-		    		 //System.out.println("Pto: " + (XOffSet+i+10));
-		    		 g.drawString(""+arrayLambda[i],XOffSet+i*feX+5, YOffSet+470 );  
+		    		 g.drawString(""+arrayLambda[i],XOffSet+i*feX+5, YOffSet+470 );  	
+		    	//	 g.drawString(""+arrayDados[i],XOffSet, YOffSet+feY*i );  
+		    		
 		    	}
+		    
+		    for(int i=0; i<101; i=i+20) 
+			    	{
+			    		  g.drawString(""+String.valueOf(i),XOffSet,470-4*i );  	    		 
+			    	}
+			    	
 		    	//devolvendo a cor que estava sendo usada
 		    	g.setColor(actualColor);
 	    	}
