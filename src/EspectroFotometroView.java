@@ -144,7 +144,6 @@ public class EspectroFotometroView extends JFrame {
             	for (int k=0;k<numDados;k++)   
             	{    		
             	 arrayReflectancia[k] = 4000*(arrayDados[k]-arrayBlack[k])/(arrayWhite[k]-arrayBlack[k]);
-            	 int a=1;
             	 }
             	arrayDados=arrayReflectancia;
             	imprimeArrayDados();
