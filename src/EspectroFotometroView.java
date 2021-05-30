@@ -82,24 +82,24 @@ public class EspectroFotometroView extends JFrame {
 		initPanel();
 	}
 	
-	//Inicializa janela grafica
+	//******************************************************Inicializa janela grafica***********************************************
 	private void initPanel(){
-		this.setBounds(10, 10, 1100, 640);  //define tamanho da janela
+		this.setBounds(10, 10, 1100, 640);  //Define tamanho da janela. A origem é o canto superior esquerdo
 		this.setBackground(Color.black);
 		this.setTitle("Espectro Fotometro View");
 		this.getContentPane().setLayout(null);
 		
 		classeGrafica = this;
     	auxThread = new AuxThread(classeGrafica);
-    	
+    
     //******************************************************Inicializa painel do gráfico*********************************************************************	
     	imgPanel = new ImagePanel();
 
-		imgPanel.setBounds(10, 10, pixelsX, pixelsY);                	
+		imgPanel.setBounds(10, 10, pixelsX, pixelsY);   		//Origem no canto superior esquerdo da janela             	
 		imgPanel.setBackground(Color.blue);
 		this.add(imgPanel);
 		
-		//LABELS
+		//**********************************************************LABELS************************************************************
 		integTimeLabel.setBounds(760,15,160,25);
 		integTimeLabel.setFont(new Font("Arial",Font.BOLD,18));		
 		this.add(integTimeLabel);
@@ -131,7 +131,7 @@ public class EspectroFotometroView extends JFrame {
 		batField.setText("");
 		this.add(batField);
 		
-		//CRIACAO DE BOTOES
+		//*****************************************************CRIACAO DE BOTOES****************************************************
 		btnReflectancia = new JButton("Reflectancia");
 		btnReflectancia.setBounds(990, 570, 110, 25);					//(x,y,deltax,deltay
 		btnReflectancia.addActionListener(new ActionListener() 				
@@ -140,6 +140,14 @@ public class EspectroFotometroView extends JFrame {
             {
             	serial.sendValue("5\n");									//Envia comando 5
             	trabalhandoComDadosDaCom();									//31 dados de reflectancia e lamdas em arrayDados e arrayLambda
+
+            	for (int k=0;k<numDados;k++)   
+            	{    		
+            	 arrayReflectancia[k] = 4000*(arrayDados[k]-arrayBlack[k])/(arrayWhite[k]-arrayBlack[k]);
+            	 }
+            	arrayDados=arrayReflectancia;
+            	imprimeArrayDados();
+            	
             	setVisible(false);
             	setVisible(true);
             }             
@@ -273,7 +281,8 @@ public class EspectroFotometroView extends JFrame {
 		btnBlack.setBounds(800, 570, 80, 25);
 		btnBlack.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent et) {
-        		trabalhandoComDadosDaCom();
+            	serial.sendValue("5\n");									//Envia comando 5 - array de 31 elementos
+        		trabalhandoComDadosDaCom();										
         		arrayBlack=arrayDados;
 
         		// Imprime array independente se for de arquivo ou fotometro
@@ -287,6 +296,7 @@ public class EspectroFotometroView extends JFrame {
 		btnWhite.setBounds(890, 570, 80, 25);
 		btnWhite.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent et) {
+            	serial.sendValue("5\n");									//Envia comando 5 - array de 31 elementos
         		trabalhandoComDadosDaCom();
         		arrayWhite=arrayDados;            		
             	// Imprime array independente se for de arquivo ou fotometro
@@ -359,7 +369,8 @@ public class EspectroFotometroView extends JFrame {
 	}
 		
 	//*************************************Main do software******************8
-	public static void main(String[] args) {
+	public static void main(String[] args) 
+	{
 		System.out.println("   ESPECTRO FOTOMETRO VERSÃO 2021 ");
 		System.out.println("--------------------------------");	
 		
@@ -373,15 +384,30 @@ public class EspectroFotometroView extends JFrame {
             e.printStackTrace();
         }        
 	}
+	
+/*
+ 	int pixelsX=750;									     //Pixels eixo X
+	int pixelsY=550;										//Pixels eixo Y	
+ */
 	class ImagePanel extends Panel {		
 		public Image myimg = null;
-			
-		private int XOffSet = 10;
+//Coordenadas para traçar os eixos x e y
+		private int Xorigem = 30;					
+		private int Yorigem = 500;					
+		private int Xabcissas=30;
+		private int Yabcissas = 50;
+		private int Xordenadas = 700;
+		private int Yordenadas = 500;
+		
+		
+		private int XOffSetescala = 5;					//Afastamento escala Y do inicio painel grafico	
+		private int XOffSet = 30;					//Afastamento eixo Y do inicio painel grafico
 		private int YOffSet = 50;		
 		private int YOffSetDados = 450;		
 	
 		private int XMin = 500;
-		private int minValue = 500;
+		private int minValue = 450;
+		
 		//private int maxValue = 50;
 		private int XOffSet1 = 300;
 		boolean graph = false;
@@ -395,8 +421,8 @@ public class EspectroFotometroView extends JFrame {
 	        
 	        //Linhas de maximo e minimo
 	        g.setColor(Color.WHITE);
-	        feX=pixelsX/numDados;
-	        feY=pixelsY/numDados;
+	        feX=(Xordenadas-Xorigem)/numDados;		//NUmero de pixels X para cada intervalo entre dados
+	        feY=(Yorigem-Yordenadas)/numDados;		//NUmero de pixels Y para cada intervalo entre dados
 	        paintAxis(g);					//Cria os eixos X, Y e linhas hprizontais e verticais
         	paintGraph(g);					//Cria o gráfico
         	paintNumbers(g);				//Cria números dos esixos
@@ -407,19 +433,22 @@ public class EspectroFotometroView extends JFrame {
 	    private void paintAxis(Graphics g) 
 	    {
 	    	g.setColor(Color.yellow);
-	    	g.drawLine(XOffSet, minValue, XOffSet + 700, minValue);  //Eixo X
-	    	g.drawLine(XOffSet, minValue, XOffSet, YOffSet);  //Eixo Y
+	    	g.drawLine(Xorigem, Yorigem, Xordenadas, Yordenadas);  				//Eixo X
+	    	g.drawLine(Xorigem, Yorigem, Xabcissas, Yabcissas);  				 //Eixo Y
 	    	g.setColor(Color.white);
+	    	
 	    	// Linhas verticas de 20 em 20
 	    	for(int i=0; i<pixelsX; i=i+50)
 	    	{
-	    		g.drawLine(XOffSet+i, YOffSet, XOffSet+i, YOffSet + 650 );  //Eixo Y
+	    		g.drawLine(Xorigem+i, Yorigem, Xorigem+i, Yabcissas );  
 	    	}
+	    	
 	    	// Linhas horizontais de 20 em 20
-	    	for(int i=0; i<pixelsY; i=i+50)
+	    	for(int i=0; i<Yordenadas; i=i+50)
 	    	{
-	    		g.drawLine(XOffSet, YOffSet+i, XOffSet+700, YOffSet+i );  //Eixo Y
+	    		g.drawLine(Xorigem, Yorigem-i, Xordenadas, Yordenadas-i );  
 	    	}
+	    	
 	    }
 	    
 	    /********************************** Faz o gráfico na parte inferior da janela **************************/
@@ -429,7 +458,8 @@ public class EspectroFotometroView extends JFrame {
 		    for (int i=0; i < arrayDados.length-1; i++) 
 		    	{
 			    	g.setColor(Color.WHITE);
-			   	    g.drawLine(XOffSet+(i*feX),YOffSetDados-(int)arrayDados[i]/10, XOffSet+((i+1)*feX) ,YOffSetDados-(int)arrayDados[i+1]/10);			   	    
+			   	   g.drawLine(Xorigem+(i*feX),Yorigem-(int)arrayDados[i]/10, Xorigem+((i+1)*feX) ,Yorigem-(int)arrayDados[i+1]/10);	
+			   	   //Verificar fator de escala vertical com a contagem maxima
 		    	}	    	
 	    }
 	    
@@ -457,14 +487,14 @@ public class EspectroFotometroView extends JFrame {
 		  	
 		    for(int i=0; i<numDados; i=i+delta) 
 		    	{
-		    		 g.drawString(""+arrayLambda[i],XOffSet+i*feX+5, YOffSet+470 );  	
-		    	//	 g.drawString(""+arrayDados[i],XOffSet, YOffSet+feY*i );  
+		    		 g.drawString(""+arrayLambda[i],Xorigem+i*feX+5, YOffSet+470 );  	
 		    		
 		    	}
 		    
-		    for(int i=0; i<101; i=i+20) 
+		   
+		    	for(int i=0; i<pixelsX; i=i+20)
 			    	{
-			    		  g.drawString(""+String.valueOf(i),XOffSet,470-4*i );  	    		 
+			    		  g.drawString(""+String.valueOf(i), XOffSetescala,Yorigem-4*i ); 
 			    	}
 			    	
 		    	//devolvendo a cor que estava sendo usada
