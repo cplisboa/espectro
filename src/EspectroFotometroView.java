@@ -49,7 +49,7 @@ public class EspectroFotometroView extends JFrame {
 	JLabel integTimeLabel = new JLabel("Integration Time: ");
 	JLabel gainLabel = new JLabel("Gain:");
 	JLabel batLabel = new JLabel("Tensão bateria(V):");
-	JLabel labLabel = new JLabel("L            A            B");
+	
 		
 	JTextField integField = new JTextField();
 	JTextField gainField = new JTextField();
@@ -118,18 +118,35 @@ public class EspectroFotometroView extends JFrame {
 		integField.setFont(new Font("Arial",Font.BOLD,18));		
 		this.add(integField);
 		
-		EBCField.setBounds(1200, 50, 60, 25);
+//**************************************EBC****************************************************			
+		EBCField.setBounds(1210, 150, 60, 25);
 		EBCField.setFont(new Font("Arial",Font.BOLD,18));		
 		EBCField.setText(""+EBC);
 		this.add(EBCField);
 		
-		labLabel.setBounds(1100,15,160,25);
+//**************************************LAB****************************************************		
+		JLabel labLabel = new JLabel("L            A            B");
+		labLabel.setBounds(1110,15,160,25);
 		labLabel.setFont(new Font("Arial",Font.BOLD,18));		
 		this.add(labLabel);
-		 
-		  
-		 
-			
+		
+
+				
+//**************************************DELTAE****************************************************		
+				JLabel deltaeLabel = new JLabel("DELTAE");
+				deltaeLabel.setBounds(1110,120,160,25);
+				deltaeLabel.setFont(new Font("Arial",Font.BOLD,18));		
+				this.add(deltaeLabel);	
+				
+//------------------------------
+				//-----------------Campo de texto--------------------------------------		
+			    JTextField deltae = new JTextField();
+				deltae.setBounds(1200, 120, 130, 25);
+				deltae.setFont(new Font("Arial",Font.BOLD,18));	
+				this.add(deltae);
+
+				
+				
 		gainLabel.setBounds(760,50,200,25);
 		gainLabel.setFont(new Font("Arial",Font.BOLD,18));
 		this.add(gainLabel);
@@ -148,16 +165,66 @@ public class EspectroFotometroView extends JFrame {
 		batField.setFont(new Font("Arial",Font.BOLD,18));		
 		batField.setText("");
 		this.add(batField);
-	//*************************************AREA DE TEXTO********************************************************	
+		
+	//*************************************AREA DE TEXTO PARA OS APRESENTAR OS DADOS***********************************************	
 		dados.setBounds(800,120,300,400);
 		dados.setFont(new Font("Arial",Font.BOLD,16));
 		dados.setBackground(Color.YELLOW);
 		dados.setForeground(Color.BLUE);
 		this.add(dados);
-		
-
-					
+							
 		//*****************************************************CRIACAO DE BOTOES****************************************************
+
+//*****************************************BOTAO E CAMPO DE TEXTO  LAB DO PADRAO *****************************************************
+		JButton btnPadrao = null;
+		btnPadrao = new JButton("PADRAO");
+		btnPadrao.setBounds(980,50,110,25);
+		btnPadrao.setFont(new Font("Arial",Font.BOLD,18));
+		
+//-----------------Campo de texto--------------------------------------		
+	    JTextField labPadrao = new JTextField();
+		labPadrao.setBounds(1100, 50, 180, 25);
+		labPadrao.setFont(new Font("Arial",Font.BOLD,18));	
+		this.add(labPadrao);
+		
+//-------------------------	Ação a ser realizada pelo botao------------	
+		btnPadrao.addActionListener(new ActionListener() 					
+		{
+            public void actionPerformed(ActionEvent et)
+            {
+                double lab=0.645;				
+                DecimalFormat df =  new DecimalFormat("0.00");
+                labPadrao.setText(df.format(lab));
+            }             
+        });		
+		this.add(btnPadrao);
+		
+		//*****************************************BOTAO E CAMPO DE TEXTO  LAB DA AMOSTRA *****************************************************
+				JButton btnAmostra = null;
+				btnAmostra  = new JButton("AMOST.");
+				btnAmostra .setBounds(980,80,110,25);
+				btnAmostra .setFont(new Font("Arial",Font.BOLD,18));
+				
+		//-----------------Campo de texto--------------------------------------		
+			    JTextField labAmostra = new JTextField();
+			    labAmostra.setBounds(1100, 80, 180, 25);
+			    labAmostra.setFont(new Font("Arial",Font.BOLD,18));	
+				this.add(labAmostra );
+				
+		//-------------------------	Ação a ser realizada pelo botao------------	
+				btnAmostra.addActionListener(new ActionListener() 					
+				{
+		            public void actionPerformed(ActionEvent et)
+		            {
+		                double lab=0.645;				
+		                DecimalFormat df =  new DecimalFormat("0.00");
+		                labAmostra.setText(df.format(lab));
+		                deltae.setText(df.format(lab));
+		            }             
+		        });		
+				this.add(btnAmostra);
+		
+//****************************************************************BOTAO REFLECTANCIA************************************************		
 		btnReflectancia = new JButton("Reflectancia");
 		btnReflectancia.setBounds(990, 570, 110, 25);					//(x,y,deltax,deltay
 		btnReflectancia.addActionListener(new ActionListener() 				
@@ -166,7 +233,6 @@ public class EspectroFotometroView extends JFrame {
             {
             	serial.sendValue("5\n");									//Envia comando 5
             	trabalhandoComDadosDaCom();									//31 dados de reflectancia e lamdas em arrayDados e arrayLambda
-
             	for (int k=0;k<numDados;k++)   
             	{    		
             	 arrayReflectancia[k] =(arrayDados[k]-arrayBlack[k])/(arrayWhite[k]-arrayBlack[k]);
@@ -185,10 +251,9 @@ public class EspectroFotometroView extends JFrame {
 		this.add(btnReflectancia);												//Adiciona io botao na tela
 	
 	 //***********************************EBC*********************************************************************
-	 //EBC colour
 	 //ebc = 25*D*A	// D fator de diluição (=1 para amostras não diluidas) A- Absorbancia a 430nm em cubeta de 1 cm	
 		btnEBC = new JButton("EBC");
-		btnEBC.setBounds(1100, 50, 60, 25);					//(x,y,deltax,deltay
+		btnEBC.setBounds(1110, 150, 60, 25);					//(x,y,deltax,deltay
 		btnEBC.addActionListener(new ActionListener() 					
 		{
             public void actionPerformed(ActionEvent et)
@@ -205,14 +270,8 @@ public class EspectroFotometroView extends JFrame {
             }             
         });		
 		this.add(btnEBC);												//Adiciona io botao na tela
-		
-
-		
-		
-		
-		
-		
-		//*********************************************Botão Campture************************************************************************** 		
+				
+//*********************************************Botão Campture************************************************************************** 		
 		btnCapture = new JButton("Capture");
 		btnCapture.setBounds(10, 570, 80, 25);
 		btnCapture.addActionListener(new ActionListener() {
