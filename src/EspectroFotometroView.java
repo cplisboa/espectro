@@ -44,15 +44,17 @@ public class EspectroFotometroView extends JFrame {
 	JButton btnGain = null;
 	JButton btnBlack = null;
 	JButton btnWhite = null;
-
+	JButton btnEBC = null;
 	
 	JLabel integTimeLabel = new JLabel("Integration Time: ");
 	JLabel gainLabel = new JLabel("Gain:");
 	JLabel batLabel = new JLabel("Tensão bateria(V):");
+	JLabel labLabel = new JLabel("L            A            B");
 		
 	JTextField integField = new JTextField();
 	JTextField gainField = new JTextField();
 	JTextField batField = new JTextField();
+	JTextField EBCField = new JTextField();
 	
 	JTextArea dados = new JTextArea();
 	
@@ -64,6 +66,7 @@ public class EspectroFotometroView extends JFrame {
 	float[] arrayWhite = new float[128];
 	float[] arrayReflectancia = new float[128];
 	float[] arrayLambda = new float[128];
+	double EBC;
 		
 	float[] reflectanciaBranco = {42.01f,67.72f,81.59f,84.87f,85.89f,85.56f,87.02f,87.5f,88.36f,89.09f,89.89f,90.39f,90.99f,91.09f,91.45f,91.45f,91.54f,91.23f,90.88f,90.42f,90.23f,90.04f,89.8f,89.65f,89.68f,89.91f,89.77f,89.82f,90.1f,90.52f,90.75f};
 	float[] px = {1.581f,7.749f,19.107f,27.279f,40.237f,43.375f,35.615f,22.467f,9.332f,1.763f,0.416f,4.043f,12.334f,25.468f,39.340f,55.124f,70.52f,84.649f,97.148f,99.195f,101.67f,92.332f,75.096f,53.929f,36.125f,21.471f,12.241f,6.689f,3.202f,1.387f,0.687f};
@@ -88,7 +91,7 @@ public class EspectroFotometroView extends JFrame {
 	
 	//******************************************************Inicializa janela grafica***********************************************
 	private void initPanel(){
-		this.setBounds(10, 10, 1100, 640);  //Define tamanho da janela. A origem é o canto superior esquerdo
+		this.setBounds(10, 10, 1600, 640);  //Define tamanho da janela. A origem é o canto superior esquerdo
 		this.setBackground(Color.black);
 		this.setTitle("Espectro Fotometro View");
 		this.getContentPane().setLayout(null);
@@ -105,7 +108,8 @@ public class EspectroFotometroView extends JFrame {
 		//**********************************************************LABELS************************************************************
 		integTimeLabel.setBounds(760,15,160,25);
 		integTimeLabel.setFont(new Font("Arial",Font.BOLD,18));		
-		this.add(integTimeLabel);	
+		this.add(integTimeLabel);
+		
 		integField.setBounds(920, 15, 50, 20);
 		integField.setText(""+TEMPO_INTEGRACAO);
 		integField.setEditable(false);
@@ -113,6 +117,18 @@ public class EspectroFotometroView extends JFrame {
 		integField.setForeground(Color.BLACK);
 		integField.setFont(new Font("Arial",Font.BOLD,18));		
 		this.add(integField);
+		
+		EBCField.setBounds(1200, 50, 60, 25);
+		EBCField.setFont(new Font("Arial",Font.BOLD,18));		
+		EBCField.setText(""+EBC);
+		this.add(EBCField);
+		
+		labLabel.setBounds(1100,15,160,25);
+		labLabel.setFont(new Font("Arial",Font.BOLD,18));		
+		this.add(labLabel);
+		 
+		  
+		 
 			
 		gainLabel.setBounds(760,50,200,25);
 		gainLabel.setFont(new Font("Arial",Font.BOLD,18));
@@ -133,16 +149,13 @@ public class EspectroFotometroView extends JFrame {
 		batField.setText("");
 		this.add(batField);
 	//*************************************AREA DE TEXTO********************************************************	
-		dados.setBounds(800,120,250,400);
+		dados.setBounds(800,120,300,400);
 		dados.setFont(new Font("Arial",Font.BOLD,16));
 		dados.setBackground(Color.YELLOW);
 		dados.setForeground(Color.BLUE);
-		
 		this.add(dados);
 		
-	//***********************************EBC*********************************************************************
-		//EBC colour
-		//ebc = 25*D*A	// D fator de diluição (=1 para amostras não diluidas) A- Absorbancia a 430nm em cubeta de 1 cm
+
 					
 		//*****************************************************CRIACAO DE BOTOES****************************************************
 		btnReflectancia = new JButton("Reflectancia");
@@ -170,8 +183,36 @@ public class EspectroFotometroView extends JFrame {
             }             
         });		
 		this.add(btnReflectancia);												//Adiciona io botao na tela
+	
+	 //***********************************EBC*********************************************************************
+	 //EBC colour
+	 //ebc = 25*D*A	// D fator de diluição (=1 para amostras não diluidas) A- Absorbancia a 430nm em cubeta de 1 cm	
+		btnEBC = new JButton("EBC");
+		btnEBC.setBounds(1100, 50, 60, 25);					//(x,y,deltax,deltay
+		btnEBC.addActionListener(new ActionListener() 					
+		{
+            public void actionPerformed(ActionEvent et)
+            {
+            	//double EBC;
+           double fespessura=0.645;				//correção celula com espessura de 15,5 mm (10/15,5)
+           
+           	EBC=-25*fespessura*Math.log10(arrayDados[3]/4000);
+        	System.out.println("Array dados[3] ="+arrayDados[3]/4000);
+           	System.out.println("EBC ="+EBC);
+           	
+    		DecimalFormat df =  new DecimalFormat("0.00");
+    		EBCField.setText(df.format(EBC));
+            }             
+        });		
+		this.add(btnEBC);												//Adiciona io botao na tela
 		
-//*********************************************Botão Campture************************************************************************** 		
+
+		
+		
+		
+		
+		
+		//*********************************************Botão Campture************************************************************************** 		
 		btnCapture = new JButton("Capture");
 		btnCapture.setBounds(10, 570, 80, 25);
 		btnCapture.addActionListener(new ActionListener() {
@@ -331,22 +372,22 @@ public class EspectroFotometroView extends JFrame {
 	private void preencheAreaDeTexto() {
 		DecimalFormat df =  new DecimalFormat("0.0000");
 		dados.setText("Aqui vao os dados"+"\r\n"+
-		arrayLambda[0]+" "+df.format(arrayDados[0])+"   "+arrayLambda[1]+" "+arrayDados[1]+"\r\n"+
-		arrayLambda[2]+" "+df.format(arrayDados[2])+"   "+arrayLambda[3]+" "+arrayDados[3]+"\r\n"+
-		arrayLambda[4]+" "+df.format(arrayDados[4])+"   "+arrayLambda[5]+" "+arrayDados[5]+"\r\n"+
-		arrayLambda[6]+" "+df.format(arrayDados[6])+"   "+arrayLambda[7]+" "+arrayDados[7]+"\r\n"+
-		arrayLambda[8]+" "+df.format(arrayDados[8])+"   "+arrayLambda[9]+" "+arrayDados[9]+"\r\n"+
-		arrayLambda[10]+" "+df.format(arrayDados[10])+"   "+arrayLambda[11]+" "+arrayDados[11]+"\r\n"+
-		arrayLambda[12]+" "+df.format(arrayDados[12])+"   "+arrayLambda[13]+" "+arrayDados[13]+"\r\n"+
-		arrayLambda[14]+" "+df.format(arrayDados[14])+"   "+arrayLambda[15]+" "+arrayDados[15]+"\r\n"+
-		arrayLambda[16]+" "+df.format(arrayDados[16])+"   "+arrayLambda[17]+" "+arrayDados[17]+"\r\n"+
-		arrayLambda[18]+" "+df.format(arrayDados[18])+"   "+arrayLambda[19]+" "+arrayDados[19]+"\r\n"+
-		arrayLambda[20]+" "+df.format(arrayDados[20])+"   "+arrayLambda[21]+" "+arrayDados[21]+"\r\n"+
-		arrayLambda[22]+" "+df.format(arrayDados[22])+"   "+arrayLambda[23]+" "+arrayDados[23]+"\r\n"+
-		arrayLambda[24]+" "+df.format(arrayDados[24])+"   "+arrayLambda[25]+" "+arrayDados[25]+"\r\n"+
-		arrayLambda[26]+" "+df.format(arrayDados[26])+"   "+arrayLambda[27]+" "+arrayDados[27]+"\r\n"+
-		arrayLambda[28]+" "+df.format(arrayDados[28])+"   "+arrayLambda[29]+" "+arrayDados[29]+"\r\n"+
-		arrayLambda[30]+" "+df.format(arrayDados[30]));		
+		arrayLambda[0]+"   "+df.format(arrayDados[0])+"      "+arrayLambda[1]+"   "+arrayDados[1]+"\r\n"+
+		arrayLambda[2]+"   "+df.format(arrayDados[2])+"      "+arrayLambda[3]+"   "+arrayDados[3]+"\r\n"+
+		arrayLambda[4]+"   "+df.format(arrayDados[4])+"      "+arrayLambda[5]+"   "+arrayDados[5]+"\r\n"+
+		arrayLambda[6]+"   "+df.format(arrayDados[6])+"      "+arrayLambda[7]+"   "+arrayDados[7]+"\r\n"+
+		arrayLambda[8]+"   "+df.format(arrayDados[8])+"      "+arrayLambda[9]+"   "+arrayDados[9]+"\r\n"+
+		arrayLambda[10]+"   "+df.format(arrayDados[10])+"      "+arrayLambda[11]+"   "+arrayDados[11]+"\r\n"+
+		arrayLambda[12]+"   "+df.format(arrayDados[12])+"      "+arrayLambda[13]+"   "+arrayDados[13]+"\r\n"+
+		arrayLambda[14]+"   "+df.format(arrayDados[14])+"      "+arrayLambda[15]+"   "+arrayDados[15]+"\r\n"+
+		arrayLambda[16]+"   "+df.format(arrayDados[16])+"      "+arrayLambda[17]+"   "+arrayDados[17]+"\r\n"+
+		arrayLambda[18]+"   "+df.format(arrayDados[18])+"      "+arrayLambda[19]+"   "+arrayDados[19]+"\r\n"+
+		arrayLambda[20]+"   "+df.format(arrayDados[20])+"      "+arrayLambda[21]+"   "+arrayDados[21]+"\r\n"+
+		arrayLambda[22]+"   "+df.format(arrayDados[22])+"      "+arrayLambda[23]+"   "+arrayDados[23]+"\r\n"+
+		arrayLambda[24]+"   "+df.format(arrayDados[24])+"      "+arrayLambda[25]+"   "+arrayDados[25]+"\r\n"+
+		arrayLambda[26]+"   "+df.format(arrayDados[26])+"      "+arrayLambda[27]+"   "+arrayDados[27]+"\r\n"+
+		arrayLambda[28]+"   "+df.format(arrayDados[28])+"      "+arrayLambda[29]+"   "+arrayDados[29]+"\r\n"+
+		arrayLambda[30]+"   "+df.format(arrayDados[30]));		
 		
 	}
 
@@ -359,7 +400,7 @@ public class EspectroFotometroView extends JFrame {
 			String diaDeHoje = data.getDate()+"-"+ (data.getMonth()+1) + "-" + (data.getYear()+1900) + "-" + data.getHours() + "-" + data.getMinutes(); 
 			FileWriter fis = new FileWriter("espectro" + diaDeHoje +".txt");
 			BufferedWriter writter = new BufferedWriter(fis);
-			for (int i=0;i<128;i++) {				
+			for (int i=0;i<arrayDados.length;i++) {				
 				writter.write(Float.toString(arrayDados[i])+"\n");
 			}
 			writter.close();
@@ -441,7 +482,8 @@ public class EspectroFotometroView extends JFrame {
 		private int Yordenadas = 500;			//deltaY=Yorigem-Yabcissas = 450 pontos
 		
 		
-		private int XOffSetescala = 5;					//Afastamento escala Y do inicio painel grafico	
+		private int XOffSetescala1 = 5;					//Afastamento escala Y do inicio painel grafico	(Dados brutos)
+		private int XOffSetescala2 = 655;					//Afastamento escala Y do fianl painel grafico	(Reflect e transmit
 		private int XOffSet = 30;					//Afastamento eixo Y do inicio painel grafico
 		private int YOffSet = 50;		
 		private int YOffSetDados = 450;		
@@ -470,7 +512,7 @@ public class EspectroFotometroView extends JFrame {
 
 	    }
 	    
-	    /************************************* Imprime Eixos e Linhas Verticais  ******************************/
+	    /************************************* Imprime Eixos e Linhas ****************  ******************************/
 	    private void paintAxis(Graphics g) 
 	    {
 	
@@ -533,8 +575,14 @@ public class EspectroFotometroView extends JFrame {
 		 // Numera eixo vertical com as intensidades (contagens do ADC 0-4095)			   
 		    	for(int i=0; i<10; i=i+1)
 			    	{
-			    		  g.drawString(""+String.valueOf(500*i), XOffSetescala,Yorigem-50*i ); 
+			    		  g.drawString(""+String.valueOf(500*i), XOffSetescala1,Yorigem-50*i ); 
+			    		 // g.drawString(""+String.valueOf(i*10), XOffSetescala2,Yorigem-40*i ); 
 			    	}
+		    	for(int i=0; i<11; i=i+5)
+		    	{
+		    		//  g.drawString(""+String.valueOf(500*i), XOffSetescala1,Yorigem-50*i ); 
+		    		  g.drawString(""+String.valueOf(i*10), XOffSetescala2,Yorigem-40*i ); 
+		    	}
 			    	
 		    	//devolvendo a cor que estava sendo usada
 		    	g.setColor(actualColor);
