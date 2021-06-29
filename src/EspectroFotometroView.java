@@ -5,9 +5,7 @@ import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.Font;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.text.DecimalFormat;
 import java.util.Calendar;
@@ -22,14 +20,14 @@ import javax.swing.JTextField;
 
 /** Página que documenta a nova API de comunicação serial 
  *  https://fazecast.github.io/jSerialComm/
- */
-
+ */  
+@SuppressWarnings("serial")
 public class EspectroFotometroView extends JFrame {
 	
 	private static final boolean IMPRIME_DADOS_BRUTOS = true;
 	private static final int TEMPO_INTEGRACAO = 1280;
-	private static final int SAMPLES = 120;
-	private static final int WAIT_TIME = 500; //em milisegundos	
+	//private static final int SAMPLES = 120;
+	//private static final int WAIT_TIME = 500; //em milisegundos	
 	
 	AuxThread auxThread = null;
 	
@@ -192,9 +190,13 @@ public class EspectroFotometroView extends JFrame {
 		{
             public void actionPerformed(ActionEvent et)
             {
-                double lab=0.645;				
-                DecimalFormat df =  new DecimalFormat("0.00");
-                labPadrao.setText(df.format(lab));
+            	Coordenadas xyz = Colorimetria.converteReflectanciaXYZ(arrayDados);
+            	Coordenadas Lab = Colorimetria.converteXYZLab(xyz); 
+            	
+            	
+               // double lab=0.645;				
+                
+                labPadrao.setText(Lab.texto());
             }             
         });		
 		this.add(btnPadrao);
@@ -504,13 +506,14 @@ public class EspectroFotometroView extends JFrame {
     	}
 	}
 	
+	/*
 	private void imprimeArrayDados(){
 		System.out.println("Apresentando array lido.");
 		for(int j=0;j<arrayDados.length;j++) {
 			System.out.println(j+" - "+arrayDados[j]);
 		}
 		System.out.println("FIM ARRAYDADOS.");		
-	}
+	}  */
 		
 	//*************************************Main do software******************8
 	public static void main(String[] args) 
@@ -603,12 +606,13 @@ public class EspectroFotometroView extends JFrame {
 		    	}
 	    }
 	    
-	    /** Normaliza valor fazendo regra de tres */
+	    /*
+	    // Normaliza valor fazendo regra de tres
 	    private float normalize(float data) {
 	    	float result = 0;
 	    	result = (data * minValue) / sampleMaximo;	    	
 	    	return result;
-	    }
+	    }*/
 	    
 	    /****************************** Coloca numeros no grafico ***************/
 	    private void paintNumbers(Graphics g){
